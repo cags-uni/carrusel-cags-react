@@ -16,7 +16,12 @@ const Slideshow = ({
 	const siguiente = useCallback(() => {
 		// Comprobamos que el slideshow tenga elementos
 		if(slideshow.current.children.length > 0){
-			console.log('Siguiente')
+
+			slideshow.current.children[1].style.opacity = 0.5;
+			slideshow.current.children[1].style.transform = `translateY(0)`;
+			slideshow.current.children[2].style.transform = `translateY(-100px)`;
+			slideshow.current.children[2].style.opacity = 1;
+
 
 			// Obtenemos el primer elemento del slideshow.
 			const primerElemento = slideshow.current.children[0];
@@ -24,20 +29,20 @@ const Slideshow = ({
 			// Establecemos la transicion para el slideshow.
 			slideshow.current.style.transition = `${velocidad}ms ease-out all`;
 
-			const tamañoSlide = slideshow.current.children[0].offsetWidth;
-
 			// Movemos el slideshow
+			const tamañoSlide = slideshow.current.children[0].offsetWidth;
 			slideshow.current.style.transform = `translateX(-${tamañoSlide}px)`;
 
-			const transicion = () => {
-				// Reiniciamos la posicion del Slideshow.
-				slideshow.current.style.transition = 'none';
-				slideshow.current.style.transform = `translateX(0)`;
+			const transicion = (event) => {
+				if (event.target.style.cssText.includes('translateX')) {
+					// Reiniciamos la posicion del Slideshow.
+					slideshow.current.style.transition = 'none';
+					slideshow.current.style.transform = `translateX(0)`;
 
-				// Tomamos el primer elemento y lo mandamos al final.
-				slideshow.current.appendChild(primerElemento);
-
-				slideshow.current.removeEventListener('transitionend', transicion);
+					// Tomamos el primer elemento y lo mandamos al final.
+					slideshow.current.appendChild(primerElemento);
+					slideshow.current.removeEventListener('transitionend', transicion);
+				}
 			}
 
 			// Eventlistener para cuando termina la animacion.
@@ -45,15 +50,20 @@ const Slideshow = ({
 
 		}
 	}, [velocidad]);
-	
-	const anterior = () => {
-		console.log('Anterior');
-		if(slideshow.current.children.length > 0){
-			// Obtenemos el ultimo elemento del slideshow.
+
+	const anterior = useCallback(() => {
+		// Comprobamos que el slideshow tenga elementos
+		if(slideshow.current.children.length > 0) {
+
+			slideshow.current.children[1].style.opacity = 0.5;
+			slideshow.current.children[1].style.transform = `translateY(0)`;
+
+			// Obtenemos el ultimo elemento del slideshow y lo agregamos al inicio.
 			const index = slideshow.current.children.length - 1;
 			const ultimoElemento = slideshow.current.children[index];
 			slideshow.current.insertBefore(ultimoElemento, slideshow.current.firstChild);
 			
+			// Movemos el slideshow
 			slideshow.current.style.transition = 'none';
 			const tamañoSlide = slideshow.current.children[0].offsetWidth;
 			slideshow.current.style.transform = `translateX(-${tamañoSlide}px)`;
@@ -61,10 +71,31 @@ const Slideshow = ({
 			setTimeout(() => {
 				slideshow.current.style.transition = `${velocidad}ms ease-out all`;
 				slideshow.current.style.transform = `translateX(0)`;
+				slideshow.current.children[1].style.opacity = 1;
+				slideshow.current.children[1].style.transform = `translateY(-100px)`;
 			}, 30);
-		}
-	}
 
+		}
+	}, [velocidad])
+
+	const handleClick =	useCallback((event) => {
+			if (event.target === slideshow.current.children[0].querySelector("img")) {
+				anterior()
+			}
+			else if (event.target === slideshow.current.children[2].querySelector("img")) {
+				siguiente()
+			}
+		  }, [anterior, siguiente] )
+
+	useEffect(() => {
+		// Comprobamos que el slideshow tenga elementos
+		if(slideshow.current.children.length > 0) {
+			slideshow.current.children[1].style.opacity = 1;
+			slideshow.current.children[1].style.transform = `translateY(-100px)`;
+		}
+		slideshow.current.addEventListener('click', handleClick);
+	}, [handleClick])
+	
 	useEffect(() => {
 		if(autoplay){
 			intervaloSlideshow.current = setInterval(() => {
@@ -94,7 +125,7 @@ const Slideshow = ({
 				<Boton onClick={anterior}>
 					<FlechaIzquierda />
 				</Boton>
-				<Boton derecho onClick={siguiente}>
+				<Boton derecho="true" onClick={siguiente}>
 					<FlechaDerecha />
 				</Boton>
 			</Controles>}
@@ -109,6 +140,8 @@ const ContenedorPrincipal = styled.div`
 const ContenedorSlideshow = styled.div`
 	display: flex;
 	flex-wrap: nowrap;
+	position: inherit;
+    left: -800px;
 `;
 
 const Slide = styled.div`
@@ -116,16 +149,17 @@ const Slide = styled.div`
 	overflow: hidden;
 	transition: .3s ease all;
 	z-index: 10;
-	/* max-height: 500px; */
 	position: relative;
+	opacity: 0.5;
 
 	img {
 		width: 100%;
 		vertical-align: top;
+		margin: 0;
 	}
 `;
 
-const TextoSlide = styled.div`
+/* const TextoSlide = styled.div`
 	background: ${props => props.colorFondo ? props.colorFondo : 'rgba(0,0,0,.3)'};
 	color: ${props => props.colorTexto ? props.colorTexto : '#fff'};
 	width: 100%;
@@ -138,15 +172,16 @@ const TextoSlide = styled.div`
 		position: relative;
 		background: #000;
 	}
-`;
+`; */
 
 const Controles = styled.div`
 	position: absolute;
 	top: 0;
 	z-index: 20;
-	width: 100%;
+	width: 800px;
 	height: 100%;
 	pointer-events: none;
+	margin: 0;
 `;
 
 const Boton = styled.button`
@@ -156,22 +191,22 @@ const Boton = styled.button`
 	cursor: pointer;
 	outline: none;
 	width: 50px;
-	height: 100%;
+	height: 50px;
 	text-align: center;
 	position: absolute;
 	transition: .3s ease all;
-	/* &:hover {
-		background: rgba(0,0,0,.2);
+	&:hover {
+		// background: rgba(0,0,0,.2);
 		path {
 			fill: #fff;
 		}
-	} */
+	} 
 
 	path {
 		filter: ${props => props.derecho ? 'drop-shadow(-2px 0px 0px #fff)' : 'drop-shadow(2px 0px 0px #fff)'};
 	}
 
-	${props => props.derecho ? 'right: 0' : 'left: 0'}
+	${props => props.derecho ? 'right: 0' : 'left: 0'};
 `;
  
-export {Slideshow, Slide, TextoSlide};
+export {Slideshow, Slide};

@@ -7,18 +7,19 @@
 }
 
 body {
-	background: #EDE9E7;
+	/* background: #EDE9E7; */
+	background: url(./img/fondo-1.png);
 	font-family: 'Poppins', sans-serif;
-	overflow-x: hidden;
+	/* overflow-x: hidden; */
 }
 
 main {
 	max-width: 800px;
-	margin: 150px auto;
+	margin: 50px auto;
 	/* overflow: hidden; */
 }
 
 button {
 	border: none;
-	margin: 0 25px;
+	/* margin: 0 25px; */
 }

@@ -5,121 +5,92 @@ import styled from 'styled-components';
 
 const Slideshow = ({
 		children,
-		controles = false,
-		autoplay = false,
-		velocidad="500",
-		intervalo="5000"
+		controles = false
 	}) => {
 	const slideshow = useRef(null);
-	const intervaloSlideshow = useRef(null);
 
 	const posicionarSlides = () => {
-		slideshow.current.children[0].style.left = '50px';
-		slideshow.current.children[0].style.zIndex = '7';
-		slideshow.current.children[1].style.left = '150px';
-		slideshow.current.children[1].style.zIndex = '8';
-		slideshow.current.children[2].style.left = '250px';
-		slideshow.current.children[2].style.zIndex = '10';
-		slideshow.current.children[3].style.left = '350px';
-		slideshow.current.children[3].style.zIndex = '8';			
-		slideshow.current.children[4].style.left = '450px';
-		slideshow.current.children[4].style.zIndex = '7';			
-		
-		slideshow.current.children[0].style.transform = `translateY(100px)`;
-		slideshow.current.children[4].style.transform = `translateY(100px)`;
-		slideshow.current.style.transition = `3000ms ease-out all`;
-		slideshow.current.children[2].style.transform = `translateY(-100px)`;
-		//slideshow.current.style.transition = `none`;
-	}
-
-	const siguiente = useCallback(() => {
 		// Comprobamos que el slideshow tenga elementos
 		if(slideshow.current.children.length > 0){
 
-			slideshow.current.children[0].style.transform = `translateY(0)`;
-			slideshow.current.children[2].style.transform = `translateY(0)`;
-			slideshow.current.children[4].style.transform = `translateY(0)`;
+			slideshow.current.children[0].style.left = '50px';
+			slideshow.current.children[0].style.top = '200px';
+			slideshow.current.children[0].style.zIndex = '7';
+			slideshow.current.children[1].style.left = '150px';
+			slideshow.current.children[1].style.top = '100px';
+			slideshow.current.children[1].style.zIndex = '8';
+			slideshow.current.children[2].style.left = '250px';
+			slideshow.current.children[2].style.top = '0';
+			slideshow.current.children[2].style.zIndex = '10';
+			slideshow.current.children[3].style.left = '350px';
+			slideshow.current.children[3].style.top = '100px';
+			slideshow.current.children[3].style.zIndex = '8';			
+			slideshow.current.children[4].style.left = '450px';
+			slideshow.current.children[4].style.top = '200px';
+			slideshow.current.children[4].style.zIndex = '7';
+			
+			if(slideshow.current.children.length > 5){
+				for (let i = 0; i < slideshow.current.children.length; i++) {
+					slideshow.current.children[i].style.visibility = (i < 5 ? 'visible' : 'hidden')
+					if (i >= 5)
+						slideshow.current.children[i].style.zIndex = '6';
+				}
+			}
+		}
+	}
+
+ 	const siguiente = useCallback(() => {
+		// Comprobamos que el slideshow tenga elementos
+		if(slideshow.current.children.length > 0){
 
 			// Obtenemos el primer elemento del slideshow y lo agregamos al final.
 			const primerElemento = slideshow.current.children[0];
 			slideshow.current.appendChild(primerElemento);
 
-			// Quitamos la transición y movemos el slideshow
-			//slideshow.current.style.transition = 'none';
-			slideshow.current.style.transform = `translateX(200px)`;
-
 			posicionarSlides();
-
-			setTimeout(() => {
-				//slideshow.current.style.transition = 'none';
-				slideshow.current.style.transform = `translateX(0)`;			
-			}, 30);
-
 		}
-	}, []);
+	}, []); 
 
 	const anterior = useCallback(() => {
 		// Comprobamos que el slideshow tenga elementos
 		if(slideshow.current.children.length > 0) {
-
-			slideshow.current.children[0].style.transform = `translateY(0)`;
-			slideshow.current.children[2].style.transform = `translateY(0)`;
-			slideshow.current.children[4].style.transform = `translateY(0)`;
 
 			// Obtenemos el ultimo elemento del slideshow y lo agregamos al inicio.
 			const index = slideshow.current.children.length - 1;
 			const ultimoElemento = slideshow.current.children[index];
 			slideshow.current.insertBefore(ultimoElemento, slideshow.current.firstChild);
 			
-			// Movemos el slideshow
-			slideshow.current.style.transform = `translateX(-200px)`;
-		
 			posicionarSlides();
-
-			setTimeout(() => {
-				slideshow.current.style.transform = `translateX(0)`;
-			}, 30);
-
 		}
 	}, [])
 
 	const handleClick =	useCallback((event) => {
 			if (event.target === slideshow.current.children[1].querySelector("img")) {
-				anterior()
+				anterior();
 			}
 			else if (event.target === slideshow.current.children[3].querySelector("img")) {
-				siguiente()
+				siguiente();
+			}
+			else if (event.target === slideshow.current.children[0].querySelector("img")) {
+				anterior();
+				anterior();
+			}
+			else if (event.target === slideshow.current.children[4].querySelector("img")) {
+				siguiente();
+				siguiente();
 			}
 		  }, [anterior, siguiente] )
 
 	useEffect(() => {
+		// Efecto que se ejecuta solo una vez al cargar la página
 		// Comprobamos que el slideshow tenga elementos
 		if(slideshow.current.children.length > 0) {
 			posicionarSlides();
+			slideshow.current.style.visibility = 'visible';
 			slideshow.current.addEventListener('click', handleClick);
 		}
 	}, [handleClick])
 	
-	useEffect(() => {
-		if(autoplay){
-			intervaloSlideshow.current = setInterval(() => {
-				siguiente();
-			}, intervalo);
-	
-			// Eliminamos los intervalos
-			slideshow.current.addEventListener('mouseenter', () => {
-				clearInterval(intervaloSlideshow.current);
-			});
-	
-			// Volvemos a poner el intervalo cuando saquen el cursor del slideshow
-			slideshow.current.addEventListener('mouseleave', () => {
-				intervaloSlideshow.current = setInterval(() => {
-					siguiente();
-				}, intervalo);
-			});
-		}
-	}, [autoplay, intervalo, siguiente]);
-
 	return (
 		<ContenedorPrincipal>
 			<ContenedorSlideshow ref={slideshow}>
@@ -146,6 +117,8 @@ const ContenedorSlideshow = styled.div`
 	flex-wrap: nowrap;
 	position: inherit;
 	left: -250px;
+	visibility: hidden;
+	transition: 3000ms ease-out all;
 `;
 
 const Slide = styled.div`
@@ -154,8 +127,6 @@ const Slide = styled.div`
 	transition: .3s ease all;
 	z-index: 10;
 	position: absolute;
-	top: 100px;
-	// opacity: 0.5;
 
 	img {
 		width: 100%;
@@ -198,20 +169,5 @@ const Boton = styled.button`
 
 	${props => props.derecho ? 'right: 0' : 'left: 0'};
 `;
- 
-/* const TextoSlide = styled.div`
-	background: ${props => props.colorFondo ? props.colorFondo : 'rgba(0,0,0,.3)'};
-	color: ${props => props.colorTexto ? props.colorTexto : '#fff'};
-	width: 100%;
-	padding: 10px 60px;
-	text-align: center;
-	position: absolute;
-	bottom: 0;
-
-	@media screen and (max-width: 700px) {
-		position: relative;
-		background: #000;
-	}
-`; */
 
 export {Slideshow, Slide};
